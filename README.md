@@ -4,22 +4,31 @@ Minimal reproduction guide for CleanViewGAD / SAREM-GAD-style unsupervised graph
 
 ## 1. Environment
 
+Create the same environment used in our experiments:
+
 ```bash
-conda create -n cleanviewgad python=3.9 -y
-conda activate cleanviewgad
-
-# CUDA 11.8
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-# Dependencies
-pip install -r requirements.txt
-pip install numpy scipy pandas scikit-learn matplotlib networkx tqdm h5py
+conda create -p D:\conda_envs_unified\adgcl python=3.8.13 -y
+conda activate D:\conda_envs_unified\adgcl
 ```
 
-For CPU-only environments:
+Install PyTorch 1.12.1 with CUDA 11.3:
 
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+```
+
+Install graph learning dependencies:
+
+```bash
+pip install torch-scatter==2.0.9 torch-sparse==0.6.15 torch-cluster==1.6.0 -f https://data.pyg.org/whl/torch-1.12.1+cu113.html
+pip install torch-geometric==2.6.1
+pip install dgl-cu113==0.9.1 dgl==0.4.3
+```
+
+Install common scientific packages:
+
+```bash
+pip install numpy==1.23.5 scipy==1.9.1 pandas==1.5.3 scikit-learn==1.2.2 matplotlib==3.7.1 networkx==2.8.8 tqdm==4.64.1 pygod==1.1.0 openpyxl==3.1.5 seaborn==0.12.2
 ```
 
 ## 2. Dataset Format
@@ -43,34 +52,15 @@ label     anomaly labels, or labels
 
 Labels are only used for evaluation.
 
-## 3. Run One Dataset
+## 3. Reproduction Commands
+
+Run one dataset:
 
 ```bash
 python run_sarem_pack.py --dataset cora --data_dir ./dataset --variant sarem_score --seed 0 --output_root ./sarem_results
 ```
 
-Other datasets:
-
-```bash
-python run_sarem_pack.py --dataset citeseer --data_dir ./dataset --variant sarem_score --seed 0 --output_root ./sarem_results
-python run_sarem_pack.py --dataset pubmed --data_dir ./dataset --variant sarem_score --seed 0 --output_root ./sarem_results
-python run_sarem_pack.py --dataset BlogCatalog --data_dir ./dataset --variant sarem_score --seed 0 --output_root ./sarem_results
-```
-
-## 4. Run All Main Datasets
-
-```bash
-python run_all_sarem_datasets.py \
-  --datasets cora,citeseer,pubmed,BlogCatalog \
-  --data_dir ./dataset \
-  --variant sarem_score \
-  --seeds 0,1,2,3,4 \
-  --output_root ./sarem_results
-```
-
-If the batch script is unavailable, run `run_sarem_pack.py` separately for each dataset and seed.
-
-## 5. Paper-Level Reproduction
+Run four main datasets with five seeds:
 
 ```bash
 python run_paper_experiments_sarem.py \
@@ -81,15 +71,7 @@ python run_paper_experiments_sarem.py \
   --output_root ./sarem_results
 ```
 
-## 6. Expected Outputs
-
-Each run writes results to:
-
-```text
-sarem_results/{dataset}/{variant}/seed_{seed}/
-```
-
-Example:
+Expected output example:
 
 ```text
 sarem_results/cora/sarem_score/seed_0/
@@ -101,64 +83,4 @@ sarem_results/cora/sarem_score/seed_0/
   clean_view_info.json
   plot_data.json
   best_model.pkl
-```
-
-Main files:
-
-```text
-metrics.json          ROC-AUC, PR-AUC, and other metrics.
-node_scores.csv       Node-level anomaly scores.
-clean_view_info.json  CleanView edge information.
-roc_curve.csv         ROC curve points.
-pr_curve.csv          Precision-Recall curve points.
-```
-
-## 7. Nature-Style Visualization
-
-```bash
-python nature_vis/05_build_all_nature_figures.py \
-  --result_root ./sarem_results \
-  --data_dir ./dataset \
-  --datasets cora,citeseer,pubmed,BlogCatalog \
-  --variant sarem_score \
-  --seed 0 \
-  --top_k 1 \
-  --output_root ./nature_vis_outputs \
-  --overwrite
-```
-
-Windows example:
-
-```powershell
-python nature_vis/05_build_all_nature_figures.py ^
-  --result_root ./sarem_results ^
-  --data_dir "D:\DESK\金融欺诈\AAA金融欺诈\SAREM_GAD_final_pack\dataset" ^
-  --datasets cora,citeseer,pubmed,BlogCatalog ^
-  --variant sarem_score ^
-  --seed 0 ^
-  --top_k 1 ^
-  --output_root ./nature_vis_outputs ^
-  --overwrite
-```
-
-Expected visualization outputs:
-
-```text
-nature_vis_outputs/figures/four_dataset_node_case_study_grid.pdf
-nature_vis_outputs/figures/four_dataset_node_case_study_grid.png
-nature_vis_outputs/figures/four_dataset_evidence_distribution_grid.pdf
-nature_vis_outputs/figures/four_dataset_evidence_distribution_grid.png
-nature_vis_outputs/figures/four_dataset_cleanview_edge_refinement_grid.pdf
-nature_vis_outputs/figures/four_dataset_cleanview_edge_refinement_grid.png
-nature_vis_outputs/figures/four_dataset_raw_degree_vs_clean_degree_grid.pdf
-nature_vis_outputs/figures/four_dataset_raw_degree_vs_clean_degree_grid.png
-nature_vis_outputs/paper_text/visual_analysis.tex
-nature_vis_outputs/paper_text/visual_analysis_cn.txt
-```
-
-## 8. Quick Check
-
-```bash
-python run_sarem_pack.py --help
-python run_paper_experiments_sarem.py --help
 ```
